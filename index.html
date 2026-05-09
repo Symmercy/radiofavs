@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radio</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #111;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    h1 {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 1.5rem;
+    }
+
+    .station {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border: 1px solid #222;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+
+    .station:hover { border-color: #444; }
+    .station.playing { border-color: #555; background: #1a1a1a; }
+
+    .station-name {
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .station-freq {
+      font-size: 12px;
+      color: #555;
+      margin-top: 3px;
+    }
+
+    .station.playing .station-freq { color: #888; }
+
+    .indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #333;
+      flex-shrink: 0;
+    }
+
+    .station.playing .indicator {
+      background: #e05;
+      animation: blink 1.2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .volume {
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .volume label {
+      font-size: 12px;
+      color: #555;
+      flex-shrink: 0;
+    }
+
+    .volume input[type=range] {
+      flex: 1;
+      accent-color: #555;
+      cursor: pointer;
+    }
+
+    .error {
+      font-size: 12px;
+      color: #a33;
+      margin-top: 0.75rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Radio</h1>
+
+  <div class="station" onclick="toggle(this)" data-url="http://stream.radiostudent.hr/audio">
+    <div>
+      <div class="station-name">Radio Student</div>
+      <div class="station-freq">100.5 FM</div>
+    </div>
+    <div class="indicator"></div>
+  </div>
+
+  <div class="station" onclick="toggle(this)" data-url="https://playerservices.streamtheworld.com/api/livestream-redirect/PROGRAM3_SC">
+    <div>
+      <div class="station-name">HR3 – Treći program</div>
+      <div class="station-freq">96.1 FM</div>
+    </div>
+    <div class="indicator"></div>
+  </div>
+
+  <div class="station" onclick="toggle(this)" data-url="https://stream.yammat.fm/radio/8000/yammat.mp3">
+    <div>
+      <div class="station-name">Yammat FM</div>
+      <div class="station-freq">102.5 FM</div>
+    </div>
+    <div class="indicator"></div>
+  </div>
+
+  <div class="volume">
+    <label>vol</label>
+    <input type="range" min="0" max="100" value="80" step="1" oninput="audio.volume = this.value / 100">
+  </div>
+
+  <div class="error" id="error">Stream not loading — the station may be blocking browser requests.</div>
+</div>
+
+<audio id="audio" preload="none"></audio>
+
+<script>
+  const audio = document.getElementById('audio');
+  const error = document.getElementById('error');
+  let current = null;
+
+  audio.volume = 0.8;
+
+  audio.addEventListener('error', () => {
+    error.style.display = 'block';
+    if (current) current.classList.remove('playing');
+    current = null;
+  });
+
+  function toggle(el) {
+    error.style.display = 'none';
+
+    if (current === el) {
+      audio.pause();
+      audio.src = '';
+      el.classList.remove('playing');
+      current = null;
+      return;
+    }
+
+    if (current) {
+      current.classList.remove('playing');
+    }
+
+    audio.src = el.dataset.url;
+    audio.play().catch(() => {
+      error.style.display = 'block';
+      el.classList.remove('playing');
+      current = null;
+    });
+
+    el.classList.add('playing');
+    current = el;
+  }
+</script>
+
+</body>
+</html>
